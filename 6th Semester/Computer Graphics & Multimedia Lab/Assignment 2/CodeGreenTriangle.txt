@@ -1,0 +1,191 @@
+Window title → Md. Raiyan Rahim Fahad
+Background → Yellow
+Rectangle → Green
+Rectangle is wider than it is tall, so it is not a square
+Uses exactly 6 vertices
+Press F → closes window
+
+
+NB. External tools were used during this assignment to understand the OpenGL concepts, improve the code structure, and help identify and fix minor coding errors. The generated suggestions were reviewed and modified according to the requirements of the experiment. The final code was tested and adjusted manually before submission.
+
+
+#include "glad.h"
+#include "glfw3.h"
+
+#include <iostream>
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow* window);
+
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
+
+const char* vertexShaderSource = R"(
+#version 330 core
+
+layout (location = 0) in vec3 aPos;
+
+void main()
+{
+    gl_Position = vec4(aPos, 1.0);
+}
+)";
+
+const char* fragmentShaderSource = R"(
+#version 330 core
+
+out vec4 FragColor;
+
+void main()
+{
+    // Green
+    FragColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);
+}
+)";
+
+int main()
+{
+    // Initialize GLFW
+    glfwInit();
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
+    // Create window
+    GLFWwindow* window = glfwCreateWindow(
+        SCR_WIDTH,
+        SCR_HEIGHT,
+        "Md. Raiyan Rahim Fahad",
+        NULL,
+        NULL
+    );
+
+    if (window == NULL)
+    {
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+
+    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    // Load GLAD
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        std::cout << "Failed to initialize GLAD" << std::endl;
+        return -1;
+    }
+
+    // Vertex shader
+    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertexShader);
+
+    // Fragment shader
+    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+
+    // Shader program
+    unsigned int shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    // Rectangle using 6 vertices
+    // 2 triangles make one rectangle
+    float vertices[] =
+    {
+        // First triangle
+        -0.75f,  0.45f, 0.0f,
+        -0.75f, -0.45f, 0.0f,
+         0.75f, -0.45f, 0.0f,
+
+        // Second triangle
+        -0.75f,  0.45f, 0.0f,
+         0.75f, -0.45f, 0.0f,
+         0.75f,  0.45f, 0.0f
+    };
+
+    unsigned int VAO, VBO;
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(vertices),
+        vertices,
+        GL_STATIC_DRAW
+    );
+
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        3 * sizeof(float),
+        (void*)0
+    );
+
+    glEnableVertexAttribArray(0);
+
+    // Render loop
+    while (!glfwWindowShouldClose(window))
+    {
+        processInput(window);
+
+        // Yellow background
+        glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        // Draw green rectangle
+        glUseProgram(shaderProgram);
+
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    // Cleanup
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteProgram(shaderProgram);
+
+    glfwTerminate();
+
+    return 0;
+}
+
+// Close window when F is pressed
+void processInput(GLFWwindow* window)
+{
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, true);
+    }
+}
+
+// Resize callback
+void framebuffer_size_callback(
+    GLFWwindow* window,
+    int width,
+    int height)
+{
+    glViewport(0, 0, width, height);
+}
