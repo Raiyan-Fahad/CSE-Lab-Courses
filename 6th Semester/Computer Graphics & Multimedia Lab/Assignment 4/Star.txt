@@ -1,0 +1,214 @@
+One complete 5-point star
+8 triangles (Must needed)
+Cyan star
+Yellow background
+Window title: Md. Raiyan Rahim Fahad
+Press R to close
+No empty space in the middle
+Uses only GL_TRIANGLES
+
+NB. External tools were used during this assignment to understand the OpenGL concepts, improve the code structure, and help identify and fix minor coding errors. The generated suggestions were reviewed and modified according to the requirements of the experiment. The final code was tested and adjusted manually before submission.
+
+#include "glad.h"
+#include "glfw3.h"
+
+#include <iostream>
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow* window);
+
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
+
+const char* vertexShaderSource = R"(
+#version 330 core
+
+layout (location = 0) in vec3 aPos;
+
+void main()
+{
+    gl_Position = vec4(aPos, 1.0);
+}
+)";
+
+const char* fragmentShaderSource = R"(
+#version 330 core
+
+out vec4 FragColor;
+
+void main()
+{
+    // Cyan star
+    FragColor = vec4(0.0f, 1.0f, 1.0f, 1.0f);
+}
+)";
+
+int main()
+{
+    glfwInit();
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    // Create window
+    GLFWwindow* window = glfwCreateWindow(
+        SCR_WIDTH,
+        SCR_HEIGHT,
+        "Md. Raiyan Rahim Fahad",
+        NULL,
+        NULL
+    );
+
+    if (window == NULL)
+    {
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+
+    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    // Load GLAD
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        std::cout << "Failed to initialize GLAD" << std::endl;
+        return -1;
+    }
+
+    // Create vertex shader
+    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertexShader);
+
+    // Create fragment shader
+    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+
+    // Create shader program
+    unsigned int shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    // Star made with 8 triangles
+    float vertices[] =
+    {
+        // Top point
+         0.0f,  0.85f, 0.0f,
+         0.12f, 0.25f, 0.0f,
+        -0.12f, 0.25f, 0.0f,
+
+        // Upper right point
+         0.12f, 0.25f, 0.0f,
+         0.70f, 0.25f, 0.0f,
+         0.25f, 0.00f, 0.0f,
+
+        // Lower right point
+         0.25f, 0.00f, 0.0f,
+         0.45f, -0.65f, 0.0f,
+         0.00f, -0.28f, 0.0f,
+
+        // Lower left point
+         0.00f, -0.28f, 0.0f,
+        -0.45f, -0.65f, 0.0f,
+        -0.25f, 0.00f, 0.0f,
+
+        // Upper left point
+        -0.25f, 0.00f, 0.0f,
+        -0.70f, 0.25f, 0.0f,
+        -0.12f, 0.25f, 0.0f,
+
+        // Inner triangle 1
+         0.12f, 0.25f, 0.0f,
+         0.25f, 0.00f, 0.0f,
+        -0.12f, 0.25f, 0.0f,
+
+        // Inner triangle 2
+         0.25f, 0.00f, 0.0f,
+         0.00f, -0.28f, 0.0f,
+        -0.12f, 0.25f, 0.0f,
+
+        // Inner triangle 3
+         0.00f, -0.28f, 0.0f,
+        -0.25f, 0.00f, 0.0f,
+        -0.12f, 0.25f, 0.0f
+    };
+
+    unsigned int VAO, VBO;
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(vertices),
+        vertices,
+        GL_STATIC_DRAW
+    );
+
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        3 * sizeof(float),
+        (void*)0
+    );
+
+    glEnableVertexAttribArray(0);
+
+    // Main loop
+    while (!glfwWindowShouldClose(window))
+    {
+        processInput(window);
+
+        // Yellow background
+        glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        // Draw cyan star
+        glUseProgram(shaderProgram);
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_TRIANGLES, 0, 24);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    // Clean up
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteProgram(shaderProgram);
+
+    glfwTerminate();
+
+    return 0;
+}
+
+// Press R to close the window
+void processInput(GLFWwindow* window)
+{
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, true);
+    }
+}
+
+// Resize the viewport
+void framebuffer_size_callback(
+    GLFWwindow* window,
+    int width,
+    int height)
+{
+    glViewport(0, 0, width, height);
+}
